@@ -16,7 +16,7 @@ services:
     depends_on:
       - db
     volumes:
-      - ./wp-content:/var/www/html/wp-content
+      - wordpress_files:/var/www/html
     image: wordpress:latest
     ports:
       - "8000:80"
@@ -28,4 +28,5 @@ services:
 
 volumes:
   db_data:
+  wordpress_files:
 
