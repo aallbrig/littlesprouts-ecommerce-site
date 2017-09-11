@@ -17,6 +17,7 @@ services:
       - db
     volumes:
       - wordpress_files:/var/www/html
+      - ./themes/storefront-child:/var/www/html/wp-content/themes/storefront-child
     image: wordpress:latest
     ports:
       - "8000:80"
