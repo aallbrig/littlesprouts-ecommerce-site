@@ -18,7 +18,7 @@ services:
     volumes:
       - ./wordpress:/var/www/html
       - ./themes/storefront-child:/var/www/html/wp-content/themes/storefront-child
-    image: wordpress:latest
+    build: ./dockerfiles/wordpress
     ports:
       - "8000:80"
     restart: always
