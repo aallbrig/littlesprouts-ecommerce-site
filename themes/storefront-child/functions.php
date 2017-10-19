@@ -4,4 +4,15 @@ function my_theme_enqueue_styles() {
     wp_enqueue_style( 'parent-style', get_template_directory_uri() . '/style.css' );
 
 }
+
+function storefront_credit() {
+    ?>
+    <div class="site-info">
+        <?php echo esc_html( apply_filters( 'storefront_copyright_text', $content = '&copy; ' . get_bloginfo( 'name' ) . ' ' . date( 'Y' ) ) ); ?>
+        <?php if ( apply_filters( 'storefront_credit_link', true ) ) { ?>
+        <?php } ?>
+    </div><!-- .site-info -->
+    <?php
+}
+
 ?>
