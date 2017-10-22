@@ -20,6 +20,7 @@ services:
     volumes:
       - ./wordpress:/var/www/html
       - ./themes/storefront-child:/var/www/html/wp-content/themes/storefront-child
+      - ./backups:/var/www/html/wp-content/ai1wm-backups
     build: ./dockerfiles/wordpress
     ports:
       - "8000:80"
