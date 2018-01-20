@@ -19,6 +19,20 @@ jQuery(function() {
 		}
 	});
 	jQuery("#sa_slide_duration").val(jQuery("#jq_slider_duration").slider("value"));
+
+	// ##### JQUERY-UI - SLIDE BY SLIDER/INPUT #####
+	var init_value = jQuery("#sa_slide_by").val();
+	jQuery("#jq_slider_by").slider({
+		range:"max",
+		min:1,
+		max:12,
+		step:1,
+		value:init_value,
+		slide:function(event, ui) {
+			jQuery("#sa_slide_by").val(ui.value);
+		}
+	});
+	jQuery("#sa_slide_by").val(jQuery("#jq_slider_by").slider("value"));
 	
 	// ##### JQUERY-UI - SLIDE TRANSITION SLIDER/INPUT #####
 	var init_value = jQuery("#sa_slide_transition").val();

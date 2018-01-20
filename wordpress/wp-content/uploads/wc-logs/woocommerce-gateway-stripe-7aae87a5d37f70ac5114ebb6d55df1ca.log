@@ -1,0 +1,154 @@
+12-28-2017 @ 22:43:43 - Your domain has been verified with Apple Pay!
+01-17-2018 @ 16:44:01 - Info: Begin processing payment for order 270 for the amount of 174.00
+01-17-2018 @ 16:44:01 - charges request: Array
+(
+    [currency] => usd
+    [amount] => 17400
+    [description] => Little Sprouts - Order 270
+    [capture] => true
+    [expand[]] => balance_transaction
+    [metadata] => Array
+        (
+            [Customer Name] => Erin Thiele
+            [Customer Email] => erin.littlesprouts@gmail.com
+        )
+
+    [source] => tok_1BlK0lIzwrk7Znm63v0Z88R6
+)
+
+01-17-2018 @ 16:44:02 - Processing response: stdClass Object
+(
+    [id] => ch_1BlK0nIzwrk7Znm6LaUQClP1
+    [object] => charge
+    [amount] => 17400
+    [amount_refunded] => 0
+    [application] => 
+    [application_fee] => 
+    [balance_transaction] => stdClass Object
+        (
+            [id] => txn_1BlK0nIzwrk7Znm6JjowBeaS
+            [object] => balance_transaction
+            [amount] => 17400
+            [available_on] => 1516752000
+            [created] => 1516207421
+            [currency] => usd
+            [description] => Little Sprouts - Order 270
+            [exchange_rate] => 
+            [fee] => 535
+            [fee_details] => Array
+                (
+                    [0] => stdClass Object
+                        (
+                            [amount] => 535
+                            [application] => 
+                            [currency] => usd
+                            [description] => Stripe processing fees
+                            [type] => stripe_fee
+                        )
+
+                )
+
+            [net] => 16865
+            [source] => ch_1BlK0nIzwrk7Znm6LaUQClP1
+            [sourced_transfers] => stdClass Object
+                (
+                    [object] => list
+                    [data] => Array
+                        (
+                        )
+
+                    [has_more] => 
+                    [total_count] => 0
+                    [url] => /v1/transfers?source_transaction=ch_1BlK0nIzwrk7Znm6LaUQClP1
+                )
+
+            [status] => pending
+            [type] => charge
+        )
+
+    [captured] => 1
+    [created] => 1516207421
+    [currency] => usd
+    [customer] => 
+    [description] => Little Sprouts - Order 270
+    [destination] => 
+    [dispute] => 
+    [failure_code] => 
+    [failure_message] => 
+    [fraud_details] => stdClass Object
+        (
+        )
+
+    [invoice] => 
+    [livemode] => 
+    [metadata] => stdClass Object
+        (
+            [Customer Name] => Erin Thiele
+            [Customer Email] => erin.littlesprouts@gmail.com
+        )
+
+    [on_behalf_of] => 
+    [order] => 
+    [outcome] => stdClass Object
+        (
+            [network_status] => approved_by_network
+            [reason] => 
+            [seller_message] => Payment complete.
+            [type] => authorized
+        )
+
+    [paid] => 1
+    [receipt_email] => 
+    [receipt_number] => 
+    [refunded] => 
+    [refunds] => stdClass Object
+        (
+            [object] => list
+            [data] => Array
+                (
+                )
+
+            [has_more] => 
+            [total_count] => 0
+            [url] => /v1/charges/ch_1BlK0nIzwrk7Znm6LaUQClP1/refunds
+        )
+
+    [review] => 
+    [shipping] => 
+    [source] => stdClass Object
+        (
+            [id] => card_1BlK0lIzwrk7Znm64qTJHrK6
+            [object] => card
+            [address_city] => Auburn
+            [address_country] => US
+            [address_line1] => 111 N Main Street
+            [address_line1_check] => pass
+            [address_line2] => 
+            [address_state] => IN
+            [address_zip] => 46706
+            [address_zip_check] => pass
+            [brand] => Visa
+            [country] => US
+            [customer] => 
+            [cvc_check] => pass
+            [dynamic_last4] => 
+            [exp_month] => 1
+            [exp_year] => 2020
+            [fingerprint] => 2dAZ7Lw709k1UMVm
+            [funding] => credit
+            [last4] => 4242
+            [metadata] => stdClass Object
+                (
+                )
+
+            [name] => Erin Thiele
+            [tokenization_method] => 
+        )
+
+    [source_transfer] => 
+    [statement_descriptor] => 
+    [status] => succeeded
+    [transfer_group] => 
+)
+
+01-17-2018 @ 16:44:03 - Success: Stripe charge complete (Charge ID: ch_1BlK0nIzwrk7Znm6LaUQClP1)

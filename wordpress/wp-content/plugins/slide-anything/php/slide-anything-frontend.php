@@ -113,6 +113,11 @@ function slide_anything_shortcode($atts) {
 				$slide_data['slide_duration'] = 'false';
 			}
 			$slide_data['slide_transition'] = floatval($metadata['sa_slide_transition'][0]) * 1000;
+			if (isset($metadata['sa_slide_by'][0]) && ($metadata['sa_slide_by'][0] != '')) {
+				$slide_data['slide_by'] = $metadata['sa_slide_by'][0];
+			} else {
+				$slide_data['slide_by'] = 1;
+			}
 			$slide_data['loop_slider'] = $metadata['sa_loop_slider'][0];
 			if ($slide_data['loop_slider'] == '1') {
 				$slide_data['loop_slider'] = 'true';
@@ -496,6 +501,7 @@ function slide_anything_shortcode($atts) {
 				$output .= "			navText : ['',''],\n";
 				$output .= "			dots : ".esc_attr($slide_data['pagination']).",\n";
 				$output .= "			responsiveRefreshRate : 200,\n";
+				$output .= "			slideBy : ".esc_attr($slide_data['slide_by']).",\n";
 				$output .= "			mergeFit : true,\n";
 				//$output .= "			URLhashListener : true,\n";
 				$output .= "			mouseDrag : ".esc_attr($slide_data['mouse_drag']).",\n";
@@ -604,9 +610,9 @@ function slide_anything_shortcode($atts) {
 					$output .= "		callbacks: {\n";
 					$output .= "			open: function() {\n";
 					$output .= "				jQuery('#".esc_attr($slide_data['css_id'])."').trigger('stop.owl.autoplay');\n";
-					if ($slide_data['slide_duration'] != 0) {
-						$output .= "				jQuery('#".esc_attr($slide_data['css_id'])."').unbind('mouseleave');\n";
-					}
+					$output .= "			},\n";
+					$output .= "			close: function() {\n";
+					$output .= "				jQuery('#".esc_attr($slide_data['css_id'])."').trigger('play.owl.autoplay');\n";
 					$output .= "			}\n";
 					$output .= "		},\n";
 					$output .= "		type: 'image'\n";

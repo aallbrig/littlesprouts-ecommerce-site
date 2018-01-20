@@ -72,6 +72,7 @@ function cpt_slider_plugin_activation() {
 		update_post_meta($cpt_id, 'sa_num_slides', 8);
 		update_post_meta($cpt_id, 'sa_slide_duration', 4);
 		update_post_meta($cpt_id, 'sa_slide_transition', 0.3);
+		update_post_meta($cpt_id, 'sa_slide_by', 1);
 		update_post_meta($cpt_id, 'sa_loop_slider', '1');
 		update_post_meta($cpt_id, 'sa_stop_hover', '1');
 		update_post_meta($cpt_id, 'sa_nav_arrows', '1');
@@ -114,13 +115,7 @@ function version_20_upgrade_notice() {
 	$user_id = $current_user->ID;
 	/* Check that the user hasn't already clicked to ignore the message */
 	if (!get_user_meta($user_id, 'sa_ignore_notice')) {
-		echo "<div class='notice notice-info'>";
-
-		echo "<h3 style='margin:0px !important; padding:15px 0px 10px !important; color:crimson;'>SLIDE ANYTHING - UPGRADING TO VERSION 2.0</h3>";
-		echo "<p style='margin:0px 0px 30px !important;'>If you are upgrading to version 2.0 from a previous version, and are experiencing ";
-		echo "issues with your existing sliders, please <strong>RE-SAVE</strong> all your existing sliders to resolve these issues. ";
-		echo "You do this simply by editing each existing Slide Anything slider and then clicking the UPDATE button.";
-		echo "<br/>ALSO, if you site is running a CDN CACHE, please ensure you reset/clear this cache.</p>";
+		echo "<div class='notice notice-info' style='padding-top:10px;'>";
 
 		echo "<div style='float:left; width:170px; margin-right:15px;'><a href='http://edgewebpages.com/' target='_blank'>";
 		echo "<img style='width:100%;' src='http://edgewebpages.com/wp-content/uploads/2017/06/slide_anything_pro_product_image.png' /></a></div>";
@@ -462,6 +457,15 @@ function cpt_slider_settings_content($post) {
 	echo "<input type='text' id='sa_slide_transition' name='sa_slide_transition' readonly value='".esc_attr($slide_transition)."'><em>seconds</em>\n";
 	echo "<em class='sa_tooltip' href='' title='The time it takes to change from one slide to the next slide'></em></div>\n";
 	echo "<div class='jquery_ui_slider' id='jq_slider_transition'></div><hr/>\n";
+	// SLIDE BY
+	$slide_by = get_post_meta($post->ID, 'sa_slide_by', true);
+	if ($slide_by == '') {
+		$slide_by = 1;
+	}
+	echo "<div class='sa_slider_value'><span>Slide By:</span>";
+	echo "<input type='text' id='sa_slide_by' name='sa_slide_by' readonly value='".esc_attr($slide_by)."'><em>slides</em>";
+	echo "<em class='sa_tooltip' href='' title='The number of slides to slide per transition'></em></div>\n";
+	echo "<div class='jquery_ui_slider' id='jq_slider_by'></div><hr/>\n";
 	echo "<div class='half_width_column'>\n";
 	// LOOP SLIDER
 	$loop_slider = get_post_meta($post->ID, 'sa_loop_slider', true);
@@ -1898,6 +1902,7 @@ function cpt_slider_save_postdata() {
 		update_post_meta($post->ID, 'sa_info_moved', abs(intval($_POST['sa_info_moved'])));									// SANATIZE
 		update_post_meta($post->ID, 'sa_slide_duration', abs(floatval($_POST['sa_slide_duration'])));					// SANATIZE
 		update_post_meta($post->ID, 'sa_slide_transition', abs(floatval($_POST['sa_slide_transition'])));				// SANATIZE
+		update_post_meta($post->ID, 'sa_slide_by', abs(floatval($_POST['sa_slide_by'])));									// SANATIZE
 		if (isset($_POST['sa_loop_slider']) && ($_POST['sa_loop_slider'] == '1')) {
 			update_post_meta($post->ID, 'sa_loop_slider', '1');
 		} else {
