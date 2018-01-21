@@ -55,6 +55,7 @@ function slide_anything_shortcode($atts) {
 			}
 			$slide_data['css_id'] = $metadata['sa_css_id'][0];
 			for ($i = 1; $i <= $slide_data['num_slides']; $i++) {
+				$slide_data["slide".$i."_num"] = $i;
 				// get the valid content character count and the actual content character count
 				$slide_data["slide".$i."_valid_char_count"] = $metadata["sa_slide".$i."_char_count"][0];
 				if ($slide_data["slide".$i."_valid_char_count"] == 0) {
@@ -211,6 +212,7 @@ function slide_anything_shortcode($atts) {
 			if (($slide_data['reverse_order'] == 'true') || ($slide_data['random_order'] == 'true')) {
 				$reorder_arr = array();
 				for ($i = 1; $i <= $slide_data['num_slides']; $i++) {
+					$reorder_arr[$i-1]['num'] = $slide_data["slide".$i."_num"];
 					$reorder_arr[$i-1]['content'] = $slide_data["slide".$i."_content"];
 					$reorder_arr[$i-1]['image_id'] = $slide_data["slide".$i."_image_id"];
 					$reorder_arr[$i-1]['image_pos'] = $slide_data["slide".$i."_image_pos"];
@@ -243,6 +245,7 @@ function slide_anything_shortcode($atts) {
 					$reorder_arr = $reverse_arr;
 				}
 				for ($i = 1; $i <= $slide_data['num_slides']; $i++) {
+					$slide_data["slide".$i."_num"] = $reorder_arr[$i-1]['num'];
 					$slide_data["slide".$i."_content"] = $reorder_arr[$i-1]['content'];
 					$slide_data["slide".$i."_image_id"] = $reorder_arr[$i-1]['image_id'];
 					$slide_data["slide".$i."_image_pos"] = $reorder_arr[$i-1]['image_pos'];
@@ -321,6 +324,9 @@ function slide_anything_shortcode($atts) {
 					$slide_style .= "background-size:".$slide_image_size."; ";
 					$slide_style .= "background-repeat:".$slide_image_repeat."; ";
 					$slide_style .= "background-color:".$slide_image_color."; ";
+					if (strpos($slide_data['slide_min_height_perc'], 'px') !== false) {
+						$slide_style .= "min-height:".$slide_data['slide_min_height_perc']."; ";
+					}
 
 					// BUILD SLIDE LINK HOVER BUTTON
 					$link_output = '';
@@ -349,7 +355,8 @@ function slide_anything_shortcode($atts) {
 					// DISPLAY SLIDE OUTPUT
 					//$data_hash = $slide_data['css_id']."_slide".sprintf('%02d', $i);
 					//$output .= "<div class='sa_hover_container' data-hash='".$data_hash."' style='".esc_attr($slide_style)."'>";
-					$output .= "<div class='sa_hover_container' style='".esc_attr($slide_style)."'>";
+					$css_id = $slide_data['css_id']."_slide".sprintf('%02d', $slide_data["slide".$i."_num"]);
+					$output .= "<div id='".$css_id."' class='sa_hover_container' style='".esc_attr($slide_style)."'>";
 					if (($link_output != '') || ($popup_output != '')) {
 						if ($slide_data['slide_icons_location'] == 'Top Left') {
 							// icons location - top left
@@ -510,6 +517,9 @@ function slide_anything_shortcode($atts) {
 
 				// JAVASCRIPT 'WINDOW RESIZE' EVENT TO SET CSS 'min-height' OF SLIDES WITHIN THIS SLIDER
 				$slide_min_height = $slide_data['slide_min_height_perc'];
+				if (strpos($slide_min_height, 'px') !== false) {
+					$slide_min_height = 0;
+				}
 				if (($slide_min_height != '') && ($slide_min_height != '0')) {
 					$output .= "		sa_resize_".esc_attr($slide_data['css_id'])."();\n";	// initial call of resize function
 					$output .= "		window.addEventListener('resize', sa_resize_".esc_attr($slide_data['css_id']).");\n"; // create resize event

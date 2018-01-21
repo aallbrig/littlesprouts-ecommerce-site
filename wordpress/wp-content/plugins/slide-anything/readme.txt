@@ -185,6 +185,13 @@ The `SLIDE STYLE` settings are the style settings for each individual slide with
 * Upgrading Owl Carousel fixes an issue with Slide Anything that has been reported to me on numerous occasions - namely if you switch TABS within your browser, switch to another application, or minimise your browser window, then the Slider/Carousel stops (i.e. no more transitions), and the page needs to be reloaded to 'restart' the slider.
 * Although a BETA, version 2.3 seems pretty stable, and OC has been sitting at version 2.1.1 for over a year now.
 
+= 2.1.1 =
+* Bug Fix - Owl Carousel changed the CSS Style used for slide images in version 2.3. Changed the CSS style for images back to what was used in version 2.2.1 of Owl Carousel, so that sliders already created on sites continue to look the same.
+
+= 2.1.2 =
+* Added a new feature to allow you to set slider minimum height in pixels
+* Added a new feature so that each slide within a slider has its own unique CSS ID
+
 == Upgrade Notice ==
 
 = 1.0 =
@@ -285,3 +292,10 @@ The `SLIDE STYLE` settings are the style settings for each individual slide with
 * Replaced 'Owl Carousel 2.2.1' with 'Owl Carousel 2.3 BETA'.
 * Upgrading Owl Carousel fixes an issue with Slide Anything that has been reported to me on numerous occasions - namely if you switch TABS within your browser, switch to another application, or minimise your browser window, then the Slider/Carousel stops (i.e. no more transitions), and the page needs to be reloaded to 'restart' the slider.
 * Although a BETA, version 2.3 seems pretty stable, and OC has been sitting at version 2.1.1 for over a year now.
+
+= 2.1.1 =
+* Bug Fix - Owl Carousel changed the CSS Style used for slide images in version 2.3. Changed the CSS style for images back to what was used in version 2.2.1 of Owl Carousel, so that sliders already created on sites continue to look the same.
+
+= 2.1.2 =
+* Added a new feature to allow you to set slider minimum height in pixels
+* Added a new feature so that each slide within a slider has its own unique CSS ID
