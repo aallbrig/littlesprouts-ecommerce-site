@@ -3,7 +3,7 @@ Contributors: simonpedge
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RP7JLGK6VT252
 Tags: slider, carousel, content slider, responsive slider, html slider, owl carousel
 Requires at least: 4.0
-Tested up to: 4.9.2
+Tested up to: 4.9.4
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -192,6 +192,12 @@ The `SLIDE STYLE` settings are the style settings for each individual slide with
 * Added a new feature to allow you to set slider minimum height in pixels
 * Added a new feature so that each slide within a slider has its own unique CSS ID
 
+= 2.1.3 =
+* Minor bug fix with Slide Anything PRO Software Licensing integration
+
+= 2.1.4 =
+* Upgraded Owl Carousel from version 2.3 BETA to version 2.3.3 (production release)
+
 == Upgrade Notice ==
 
 = 1.0 =
@@ -299,3 +305,9 @@ The `SLIDE STYLE` settings are the style settings for each individual slide with
 = 2.1.2 =
 * Added a new feature to allow you to set slider minimum height in pixels
 * Added a new feature so that each slide within a slider has its own unique CSS ID
+
+= 2.1.3 =
+* Minor bug fix with Slide Anything PRO Software Licensing integration
+
+= 2.1.4 =
+* Upgraded Owl Carousel from version 2.3 BETA to version 2.3.3 (production release)

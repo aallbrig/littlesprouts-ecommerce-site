@@ -3,7 +3,7 @@
  * Stripe Payment Request API
  *
  * @package WooCommerce_Stripe/Classes/Payment_Request
- * @since   3.1.0
+ * @since   4.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -43,11 +43,25 @@ class WC_Stripe_Payment_Request {
 	public $publishable_key;
 
 	/**
+	 * Key
+	 *
+	 * @var
+	 */
+	public $secret_key;
+
+	/**
 	 * Is test mode active?
 	 *
 	 * @var bool
 	 */
 	public $testmode;
+
+	/**
+	 * This Instance.
+	 *
+	 * @var
+	 */
+	private static $_this;
 
 	/**
 	 * Initialize class actions.
@@ -56,19 +70,17 @@ class WC_Stripe_Payment_Request {
 	 * @version 4.0.0
 	 */
 	public function __construct() {
+		self::$_this                   = $this;
 		$this->stripe_settings         = get_option( 'woocommerce_stripe_settings', array() );
 		$this->testmode                = ( ! empty( $this->stripe_settings['testmode'] ) && 'yes' === $this->stripe_settings['testmode'] ) ? true : false;
 		$this->publishable_key         = ! empty( $this->stripe_settings['publishable_key'] ) ? $this->stripe_settings['publishable_key'] : '';
+		$this->secret_key              = ! empty( $this->stripe_settings['secret_key'] ) ? $this->stripe_settings['secret_key'] : '';
 		$this->stripe_checkout_enabled = isset( $this->stripe_settings['stripe_checkout'] ) && 'yes' === $this->stripe_settings['stripe_checkout'];
 		$this->total_label             = ! empty( $this->stripe_settings['statement_descriptor'] ) ? WC_Stripe_Helper::clean_statement_descriptor( $this->stripe_settings['statement_descriptor'] ) : '';
 
 		if ( $this->testmode ) {
 			$this->publishable_key = ! empty( $this->stripe_settings['test_publishable_key'] ) ? $this->stripe_settings['test_publishable_key'] : '';
-		}
-
-		// If both site title and statement descriptor is not set. Fallback.
-		if ( empty( $this->total_label ) ) {
-			$this->total_label = $_SERVER['SERVER_NAME'];
+			$this->secret_key      = ! empty( $this->stripe_settings['test_secret_key'] ) ? $this->stripe_settings['test_secret_key'] : '';
 		}
 
 		$this->total_label = str_replace( "'", '', $this->total_label ) . apply_filters( 'wc_stripe_payment_request_total_label_suffix', ' (via WooCommerce)' );
@@ -88,7 +100,52 @@ class WC_Stripe_Payment_Request {
 			return;
 		}
 
+		add_action( 'woocommerce_init', array( $this, 'set_session' ) );
 		$this->init();
+	}
+
+	/**
+	 * Checks if keys are set.
+	 *
+	 * @since 4.0.6
+	 * @return bool
+	 */
+	public function are_keys_set() {
+		if ( empty( $this->secret_key ) || empty( $this->publishable_key ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get this instance.
+	 *
+	 * @since 4.0.6
+	 * @return class
+	 */
+	public static function instance() {
+		return self::$_this;
+	}
+
+	/**
+	 * Sets the WC customer session if one is not set.
+	 * This is needed so nonces can be verified by AJAX Request.
+	 *
+	 * @since 4.0.0
+	 */
+	public function set_session() {
+		if ( ! is_user_logged_in() ) {
+			$wc_session = new WC_Session_Handler();
+
+			if ( version_compare( WC_VERSION, '3.3', '>=' ) ) {
+				$wc_session->init();
+			}
+
+			if ( ! $wc_session->has_session() ) {
+				$wc_session->set_customer_session_cookie( true );
+			}
+		}
 	}
 
 	/**
@@ -97,9 +154,8 @@ class WC_Stripe_Payment_Request {
 	 * @since 4.0.0
 	 * @version 4.0.0
 	 */
-	protected function init() {
+	public function init() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
-		add_action( 'wp', array( $this, 'set_session' ) );
 
 		/*
 		 * In order to display the Payment Request button in the correct position,
@@ -117,10 +173,8 @@ class WC_Stripe_Payment_Request {
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_payment_request_button_html' ), 1 );
 		add_action( 'woocommerce_proceed_to_checkout', array( $this, 'display_payment_request_button_separator_html' ), 2 );
 
-		if ( apply_filters( 'wc_stripe_show_payment_request_on_checkout', false ) ) {
-			add_action( 'woocommerce_checkout_before_customer_details', array( $this, 'display_payment_request_button_html' ), 1 );
-			add_action( 'woocommerce_checkout_before_customer_details', array( $this, 'display_payment_request_button_separator_html' ), 2 );
-		}
+		add_action( 'woocommerce_checkout_before_customer_details', array( $this, 'display_payment_request_button_html' ), 1 );
+		add_action( 'woocommerce_checkout_before_customer_details', array( $this, 'display_payment_request_button_separator_html' ), 2 );
 
 		add_action( 'wc_ajax_wc_stripe_get_cart_details', array( $this, 'ajax_get_cart_details' ) );
 		add_action( 'wc_ajax_wc_stripe_get_shipping_options', array( $this, 'ajax_get_shipping_options' ) );
@@ -134,23 +188,7 @@ class WC_Stripe_Payment_Request {
 		add_filter( 'woocommerce_gateway_title', array( $this, 'filter_gateway_title' ), 10, 2 );
 		add_filter( 'woocommerce_validate_postcode', array( $this, 'postal_code_validation' ), 10, 3 );
 
-		add_action( 'woocommerce_checkout_order_processed', array( $this, 'add_order_meta' ), 10, 3 );
-	}
-
-	/**
-	 * Sets the WC customer session if one is not set.
-	 * This is needed so nonces can be verified.
-	 *
-	 * @since 4.0.0
-	 */
-	public function set_session() {
-		if ( ! is_user_logged_in() ) {
-			$wc_session = new WC_Session_Handler();
-
-			if ( ! $wc_session->has_session() ) {
-				$wc_session->set_customer_session_cookie( true );
-			}
-		}
+		add_action( 'woocommerce_checkout_order_processed', array( $this, 'add_order_meta' ), 10, 2 );
 	}
 
 	/**
@@ -234,7 +272,7 @@ class WC_Stripe_Payment_Request {
 
 		$data['displayItems'] = $items;
 		$data['total'] = array(
-			'label'   => $this->total_label,
+			'label'   => apply_filters( 'wc_stripe_payment_request_total_label', $this->total_label ),
 			'amount'  => WC_Stripe_Helper::get_stripe_amount( WC_Stripe_Helper::is_pre_30() ? $product->price : $product->get_price() ),
 			'pending' => true,
 		);
@@ -243,7 +281,7 @@ class WC_Stripe_Payment_Request {
 		$data['currency']        = strtolower( get_woocommerce_currency() );
 		$data['country_code']    = substr( get_option( 'woocommerce_default_country' ), 0, 2 );
 
-		return $data;
+		return apply_filters( 'wc_stripe_payment_request_product_data', $data, $product );
 	}
 
 	/**
@@ -288,6 +326,12 @@ class WC_Stripe_Payment_Request {
 			return $valid;
 		}
 
+		$payment_request_type = isset( $_POST['payment_request_type'] ) ? wc_clean( $_POST['payment_request_type'] ) : '';
+
+		if ( 'apple_pay' !== $payment_request_type ) {
+			return $valid;
+		}
+
 		/**
 		 * Currently Apple Pay truncates postal codes from UK and Canada to first 3 characters
 		 * when passing it back from the shippingcontactselected object. This causes WC to invalidate
@@ -308,12 +352,13 @@ class WC_Stripe_Payment_Request {
 	 * @version 4.0.0
 	 * @param int $order_id
 	 * @param array $posted_data The posted data from checkout form.
-	 * @param object $order
 	 */
-	public function add_order_meta( $order_id, $posted_data, $order ) {
+	public function add_order_meta( $order_id, $posted_data ) {
 		if ( empty( $_POST['payment_request_type'] ) ) {
 			return;
 		}
+
+		$order = wc_get_order( $order_id );
 
 		$payment_request_type = wc_clean( $_POST['payment_request_type'] );
 
@@ -382,6 +427,18 @@ class WC_Stripe_Payment_Request {
 	 * @version 4.0.0
 	 */
 	public function scripts() {
+		// If keys are not set bail.
+		if ( ! $this->are_keys_set() ) {
+			WC_Stripe_Logger::log( 'Keys are not set correctly.' );
+			return;
+		}
+
+		// If no SSL bail.
+		if ( ! $this->testmode && ! is_ssl() ) {
+			WC_Stripe_Logger::log( 'Stripe requires SSL.' );
+			return;
+		}
+
 		if ( ! is_product() && ! is_cart() && ! is_checkout() && ! isset( $_GET['pay_for_order'] ) ) {
 			return;
 		}
@@ -470,6 +527,10 @@ class WC_Stripe_Payment_Request {
 			return;
 		}
 
+		if ( is_checkout() && ! apply_filters( 'wc_stripe_show_payment_request_on_checkout', false ) ) {
+			return;
+		}
+
 		if ( is_product() ) {
 			global $post;
 
@@ -517,6 +578,10 @@ class WC_Stripe_Payment_Request {
 		}
 
 		if ( is_product() && apply_filters( 'wc_stripe_hide_payment_request_on_product_page', false ) ) {
+			return;
+		}
+
+		if ( is_checkout() && ! apply_filters( 'wc_stripe_show_payment_request_on_checkout', false ) ) {
 			return;
 		}
 

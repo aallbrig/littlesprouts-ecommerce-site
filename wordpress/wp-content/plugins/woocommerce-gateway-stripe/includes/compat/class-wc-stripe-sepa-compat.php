@@ -21,10 +21,10 @@ class WC_Stripe_Sepa_Compat extends WC_Gateway_Stripe_Sepa {
 			add_action( 'wcs_renewal_order_created', array( $this, 'delete_renewal_meta' ), 10 );
 			add_action( 'woocommerce_subscription_failing_payment_method_updated_stripe', array( $this, 'update_failing_payment_method' ), 10, 2 );
 
-			// display the credit card used for a subscription in the "My Subscriptions" table
+			// Display the credit card used for a subscription in the "My Subscriptions" table.
 			add_filter( 'woocommerce_my_subscriptions_payment_method', array( $this, 'maybe_render_subscription_payment_method' ), 10, 2 );
 
-			// allow store managers to manually set Stripe as the payment method on a subscription
+			// Allow store managers to manually set Stripe as the payment method on a subscription.
 			add_filter( 'woocommerce_subscription_payment_meta', array( $this, 'add_subscription_payment_meta' ), 10, 2 );
 			add_filter( 'woocommerce_subscription_validate_payment_meta', array( $this, 'validate_subscription_payment_meta' ), 10, 2 );
 			add_filter( 'wc_stripe_display_save_payment_method_checkbox', array( $this, 'maybe_hide_save_checkbox' ) );
@@ -76,7 +76,7 @@ class WC_Stripe_Sepa_Compat extends WC_Gateway_Stripe_Sepa {
 	 */
 	public function process_payment( $order_id, $retry = true, $force_save_source = false ) {
 		if ( $this->has_subscription( $order_id ) ) {
-			// Regular payment with force customer enabled
+			// Regular payment with force customer enabled.
 			return parent::process_payment( $order_id, true, true );
 		} elseif ( $this->is_pre_order( $order_id ) ) {
 			return $this->process_pre_order( $order_id, $retry, $force_save_source );
@@ -93,7 +93,7 @@ class WC_Stripe_Sepa_Compat extends WC_Gateway_Stripe_Sepa {
 	 * @param object $order
 	 */
 	public function add_subscription_meta_data( $metadata, $order ) {
-		if ( ! $this->has_subscription( $order->get_id() ) ) {
+		if ( ! $this->has_subscription( WC_Stripe_Helper::is_pre_30() ? $order->id : $order->get_id() ) ) {
 			return $metadata;
 		}
 
@@ -109,12 +109,12 @@ class WC_Stripe_Sepa_Compat extends WC_Gateway_Stripe_Sepa {
 	 * @since 3.1.0
 	 * @version 4.0.0
 	 */
-	public function save_source( $order, $source ) {
-		parent::save_source( $order, $source );
+	public function save_source_to_order( $order, $source ) {
+		parent::save_source_to_order( $order, $source );
 
 		$order_id  = WC_Stripe_Helper::is_pre_30() ? $order->id : $order->get_id();
 
-		// Also store it on the subscriptions being purchased or paid for in the order
+		// Also store it on the subscriptions being purchased or paid for in the order.
 		if ( function_exists( 'wcs_order_contains_subscription' ) && wcs_order_contains_subscription( $order_id ) ) {
 			$subscriptions = wcs_get_subscriptions_for_order( $order_id );
 		} elseif ( function_exists( 'wcs_order_contains_renewal' ) && wcs_order_contains_renewal( $order_id ) ) {
@@ -131,45 +131,55 @@ class WC_Stripe_Sepa_Compat extends WC_Gateway_Stripe_Sepa {
 	}
 
 	/**
-	 * process_subscription_payment function.
-	 * @param mixed $order
-	 * @param int $amount (default: 0)
-	 * @param string $stripe_token (default: '')
-	 * @param  bool initial_payment
+	 * Process_subscription_payment function.
+	 *
+	 * @since 3.0
+	 * @since 4.0.4 Add third parameter flag to retry.
+	 * @param float $amount
+	 * @param mixed $renewal_order
+	 * @param bool $is_retry Is this a retry process.
 	 */
-	public function process_subscription_payment( $order = '', $amount = 0 ) {
+	public function process_subscription_payment( $amount = 0.0, $renewal_order, $is_retry = false ) {
 		if ( $amount * 100 < WC_Stripe_Helper::get_minimum_amount() ) {
 			/* translators: minimum amount */
 			return new WP_Error( 'stripe_error', sprintf( __( 'Sorry, the minimum allowed order total is %1$s to use this payment method.', 'woocommerce-gateway-stripe' ), wc_price( WC_Stripe_Helper::get_minimum_amount() / 100 ) ) );
 		}
 
-		$customer_id = WC_Stripe_Helper::is_pre_30() ? $order->customer_user : $order->get_customer_id();
-		$order_id    = WC_Stripe_Helper::is_pre_30() ? $order->id : $order->get_id();
+		$order_id = WC_Stripe_Helper::is_pre_30() ? $renewal_order->id : $renewal_order->get_id();
 
-		// Get source from order
-		$prepared_source = $this->prepare_order_source( $order );
+		// Get source from order.
+		$prepared_source = $this->prepare_order_source( $renewal_order );
 
-		// Or fail :(
 		if ( ! $prepared_source->customer ) {
 			return new WP_Error( 'stripe_error', __( 'Customer not found', 'woocommerce-gateway-stripe' ) );
 		}
 
 		WC_Stripe_Logger::log( "Info: Begin processing subscription payment for order {$order_id} for the amount of {$amount}" );
 
-		// Make the request
-		$request             = $this->generate_payment_request( $order, $prepared_source );
-		$request['capture']  = 'true';
-		$request['amount']   = WC_Stripe_Helper::get_stripe_amount( $amount, $request['currency'] );
-		$response            = WC_Stripe_API::request( $request );
+		if ( $is_retry ) {
+			// Passing empty source with charge customer default.
+			$prepared_source->source = '';
+		}
 
-		// Process valid response
-		if ( ! empty( $response->error ) ) {
+		$request            = $this->generate_payment_request( $renewal_order, $prepared_source );
+		$request['capture'] = 'true';
+		$request['amount']  = WC_Stripe_Helper::get_stripe_amount( $amount, $request['currency'] );
+		$response           = WC_Stripe_API::request( $request );
+
+		if ( ! empty( $response->error ) || is_wp_error( $response ) ) {
+			if ( $is_retry ) {
+				/* translators: error message */
+				$renewal_order->update_status( 'failed', sprintf( __( 'Stripe Transaction Failed (%s)', 'woocommerce-gateway-stripe' ), $response->error->message ) );
+			}
+
 			return $response; // Default catch all errors.
 		}
 
-		$this->process_response( $response, $order );
+		$this->process_response( $response, $renewal_order );
 
-		return $response;
+		if ( ! $is_retry ) {
+			return $response;
+		}
 	}
 
 	/**
@@ -195,13 +205,13 @@ class WC_Stripe_Sepa_Compat extends WC_Gateway_Stripe_Sepa {
 	}
 
 	/**
-	 * scheduled_subscription_payment function.
+	 * Scheduled_subscription_payment function.
 	 *
 	 * @param $amount_to_charge float The amount to charge.
 	 * @param $renewal_order WC_Order A WC_Order object created to record the renewal payment.
 	 */
 	public function scheduled_subscription_payment( $amount_to_charge, $renewal_order ) {
-		$response = $this->process_subscription_payment( $renewal_order, $amount_to_charge );
+		$response = $this->process_subscription_payment( $amount_to_charge, $renewal_order );
 
 		if ( is_wp_error( $response ) ) {
 			/* translators: error message */
@@ -209,8 +219,13 @@ class WC_Stripe_Sepa_Compat extends WC_Gateway_Stripe_Sepa {
 		}
 
 		if ( ! empty( $response->error ) ) {
-			/* translators: error message */
-			$renewal_order->update_status( 'failed', sprintf( __( 'Stripe Transaction Failed (%s)', 'woocommerce-gateway-stripe' ), $response->error->message ) );
+			// This is a very generic error to listen for but worth a retry before total fail.
+			if ( isset( $response->error->type ) && 'invalid_request_error' === $response->error->type && apply_filters( 'wc_stripe_use_default_customer_source', true ) ) {
+				$this->process_subscription_payment( $amount_to_charge, $renewal_order, true );
+			} else {
+				/* translators: error message */
+				$renewal_order->update_status( 'failed', sprintf( __( 'Stripe Transaction Failed (%s)', 'woocommerce-gateway-stripe' ), $response->error->message ) );
+			}
 		}
 	}
 
@@ -227,7 +242,7 @@ class WC_Stripe_Sepa_Compat extends WC_Gateway_Stripe_Sepa {
 
 	/**
 	 * Remove order meta
-	 * @param  object $order
+	 * @param object $order
 	 */
 	public function remove_order_customer_before_retry( $order ) {
 		$order_id = WC_Stripe_Helper::is_pre_30() ? $order->id : $order->get_id();
@@ -302,13 +317,18 @@ class WC_Stripe_Sepa_Compat extends WC_Gateway_Stripe_Sepa {
 		if ( $this->id === $payment_method_id ) {
 
 			if ( ! isset( $payment_meta['post_meta']['_stripe_customer_id']['value'] ) || empty( $payment_meta['post_meta']['_stripe_customer_id']['value'] ) ) {
-				throw new Exception( 'A "_stripe_customer_id" value is required.' );
+				throw new Exception( __( 'A "Stripe Customer ID" value is required.', 'woocommerce-gateway-stripe' ) );
 			} elseif ( 0 !== strpos( $payment_meta['post_meta']['_stripe_customer_id']['value'], 'cus_' ) ) {
-				throw new Exception( 'Invalid customer ID. A valid "_stripe_customer_id" must begin with "cus_".' );
+				throw new Exception( __( 'Invalid customer ID. A valid "Stripe Customer ID" must begin with "cus_".', 'woocommerce-gateway-stripe' ) );
 			}
 
-			if ( ! isset( $payment_meta['post_meta']['_stripe_source_id']['value'] ) || empty( $payment_meta['post_meta']['_stripe_source_id']['value'] ) ) {
-				throw new Exception( 'A "_stripe_source_id" value is required.' );
+			if (
+				( ! empty( $payment_meta['post_meta']['_stripe_source_id']['value'] )
+				&& 0 !== strpos( $payment_meta['post_meta']['_stripe_source_id']['value'], 'card_' ) )
+				&& ( ! empty( $payment_meta['post_meta']['_stripe_source_id']['value'] )
+				&& 0 !== strpos( $payment_meta['post_meta']['_stripe_source_id']['value'], 'src_' ) ) ) {
+
+				throw new Exception( __( 'Invalid source ID. A valid source "Stripe Source ID" must begin with "src_" or "card_".', 'woocommerce-gateway-stripe' ) );
 			}
 		}
 	}
@@ -426,15 +446,14 @@ class WC_Stripe_Sepa_Compat extends WC_Gateway_Stripe_Sepa {
 					throw new Exception( sprintf( __( 'Sorry, the minimum allowed order total is %1$s to use this payment method.', 'woocommerce-gateway-stripe' ), wc_price( WC_Stripe_Helper::get_minimum_amount() / 100 ) ) );
 				}
 
-				$source = $this->prepare_source( $this->create_source_object(), get_current_user_id(), true );
+				$prepared_source = $this->prepare_source( get_current_user_id(), true );
 
 				// We need a source on file to continue.
-				if ( empty( $source->customer ) || empty( $source->source ) ) {
+				if ( empty( $prepared_source->customer ) || empty( $prepared_source->source ) ) {
 					throw new Exception( __( 'Unable to store payment details. Please try again.', 'woocommerce-gateway-stripe' ) );
 				}
 
-				// Store source to order meta
-				$this->save_source( $order, $source );
+				$this->save_source_to_order( $order, $prepared_source );
 
 				// Remove cart
 				WC()->cart->empty_cart();

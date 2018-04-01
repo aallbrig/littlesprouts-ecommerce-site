@@ -20,7 +20,7 @@ function storefront_homepage_content() {
     while ( have_posts() ) {
         the_post();
 
-//        get_template_part( 'content', 'homepage' );
+        get_template_part( 'content', 'homepage' );
 
     } // end of the loop.
 }

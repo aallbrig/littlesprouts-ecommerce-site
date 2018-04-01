@@ -99,7 +99,7 @@ class WC_Gateway_Stripe_Bitcoin extends WC_Stripe_Payment_Gateway {
 		add_action( 'wp_enqueue_scripts', array( $this, 'payment_scripts' ) );
 		add_action( 'woocommerce_thankyou_stripe_bitcoin', array( $this, 'thankyou_page' ) );
 
-		// Customer Emails
+		// Customer Emails.
 		add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 3 );
 	}
 
@@ -135,6 +135,11 @@ class WC_Gateway_Stripe_Bitcoin extends WC_Stripe_Payment_Gateway {
 	 * @version 4.0.0
 	 */
 	public function get_environment_warning() {
+		// Add deprecated notice to logs.
+		if ( 'yes' === $this->enabled ) {
+			WC_Stripe_Logger::log( 'DEPRECATED! Stripe will no longer support Bitcoin and will cease to function on April 23, 2018. Please plan accordingly.' );
+		}
+
 		if ( 'yes' === $this->enabled && ! in_array( get_woocommerce_currency(), $this->get_supported_currency() ) ) {
 			$message = __( 'Bitcoin is enabled - it requires store currency to be set to USD.', 'woocommerce-gateway-stripe' );
 
@@ -363,31 +368,29 @@ class WC_Gateway_Stripe_Bitcoin extends WC_Stripe_Payment_Gateway {
 				$new_stripe_customer->create_customer();
 			}
 
-			$prepared_source = $this->prepare_source( $this->create_source_object(), get_current_user_id(), $force_save_source );
+			$prepared_source = $this->prepare_source( get_current_user_id(), $force_save_source );
 
 			if ( empty( $prepared_source->source ) ) {
 				$localized_message = __( 'Payment processing failed. Please retry.', 'woocommerce-gateway-stripe' );
 				throw new WC_Stripe_Exception( print_r( $prepared_source, true ), $localized_message );
 			}
 
-			// Store source to order meta.
-			$this->save_source( $order, $prepared_source );
-
+			$this->save_source_to_order( $order, $prepared_source );
 
 			// This will throw exception if not valid.
 			$this->validate_minimum_order_amount( $order );
 
-			$this->save_instructions( $order, $this->create_source_object() );
+			$this->save_instructions( $order, $this->get_source_object( $prepared_source->source ) );
 
-			// Mark as on-hold (we're awaiting the payment)
+			// Mark as on-hold (we're awaiting the payment).
 			$order->update_status( 'on-hold', __( 'Awaiting Bitcoin payment', 'woocommerce-gateway-stripe' ) );
 
 			wc_reduce_stock_levels( $order_id );
 
-			// Remove cart
+			// Remove cart.
 			WC()->cart->empty_cart();
 
-			// Return thankyou redirect
+			// Return thankyou redirect.
 			return array(
 				'result'    => 'success',
 				'redirect'  => $this->get_return_url( $order ),

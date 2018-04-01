@@ -19,3 +19,44 @@ FontAwesome License: SIL Open Font License - http://scripts.sil.org/OFL
 Images License: GNU General Public License v2 or later
 */
 
+@import url('https://fonts.googleapis.com/css?family=Open+Sans|Pacifico');
+
+*, .woocommerce-loop-product__title {
+    font-family: 'Open Sans', sans-serif;
+}
+h1, h2, h3, h4, h5, h6, .site-footer *, .menu.nav-menu * {
+    font-family: 'Pacifico', cursive;
+}
+.menu.nav-menu li {
+    font-size: 20px;
+}
+
+button#responsive-menu-button {
+    top: 30px !important;
+}
+#responsive-menu-container {
+    z-index: 100000 !important;
+}
+.page-template-template-homepage.has-post-thumbnail .type-page.has-post-thumbnail {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+@media only screen and (max-width: 500px) {
+    .site-title > a {
+        font-size: 0.9em;
+    }
+    #masthead > .col-full {
+        margin-left: 1em;
+        margin-right: 1em;
+    }
+    .custom-logo {
+        max-width: 50px !important;
+    }
+}
+
+@media only screen and (max-width: 1067px) {
+    .custom-logo {
+        max-width: 75px !important;
+    }
+}

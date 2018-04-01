@@ -4,7 +4,7 @@ Tags: credit card, stripe, apple pay, payment request, google pay, sepa, sofort,
 Requires at least: 4.4
 Tested up to: 4.9
 Requires PHP: 5.6
-Stable tag: 4.0.3
+Stable tag: 4.0.7
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Attributions: thorsten-stripe
@@ -91,6 +91,10 @@ For help setting up and configuring, please refer to our [user guide](https://do
 
 If you get stuck, you can ask for help in the Plugin Forum.
 
+= When will the older credit card form ( pre version 4.0.0 ) be deprecated? =
+
+We will completely remove the older form by version 4.1.0.
+
 == Screenshots ==
 
 1. The settings panel used to configure the gateway.
@@ -101,9 +105,10 @@ If you get stuck, you can ask for help in the Plugin Forum.
 
 == Changelog ==
 
-= 4.0.3 - 2018-01-18 =
-* Fix - Pass Stripe source as id instead of object as some sites may conflict with objects being passed.
-* Fix - For Payment Request Button, if test keys are not filled, it can cause live mode not to function.
+= 4.0.7 - 2018-02-23 =
+* Fix - Potential conflict issue when adding payment method from another payment gateway.
+* Fix - Issue when using saved card before sources were introduced.
+* Add - Description field/setting for Stripe Checkout Modal/popup.
 
 [See changelog for all versions](https://raw.githubusercontent.com/woothemes/woocommerce-gateway-stripe/master/changelog.txt).
 
