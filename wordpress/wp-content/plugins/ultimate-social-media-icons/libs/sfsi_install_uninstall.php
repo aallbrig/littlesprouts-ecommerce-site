@@ -12,7 +12,7 @@ function sfsi_update_plugin()
     }
     
     //Install version
-    update_option("sfsi_pluginVersion", "1.89");
+    update_option("sfsi_pluginVersion", "1.96");
 
 
     if(!get_option('sfsi_serverphpVersionnotification'))
@@ -135,7 +135,6 @@ function sfsi_update_plugin()
         $option4['sfsi_instagram_clientid'] = '';
         $option4['sfsi_instagram_appurl']   = '';
         $option4['sfsi_instagram_token']    = '';
-        update_option('sfsi_section4_options', serialize($option4));
     }
 
     $option5 = unserialize(get_option('sfsi_section5_options',false));
@@ -144,6 +143,32 @@ function sfsi_update_plugin()
         $option5['sfsi_custom_social_hide']    = 'no';
         update_option('sfsi_section5_options', serialize($option5));
     }
+
+    $option2 = unserialize(get_option('sfsi_section2_options',false));
+    if(isset($option2) && !empty($option2))
+    {
+        if(!isset($option2['sfsi_youtubeusernameorid'])){
+            
+            $option2['sfsi_youtubeusernameorid']    = '';
+
+            if(isset($option4['sfsi_youtubeusernameorid']) && !empty($option4['sfsi_youtubeusernameorid'])){
+                $option2['sfsi_youtubeusernameorid'] = $option4['sfsi_youtubeusernameorid'];
+            }
+        }
+        
+        if(!isset($option2['sfsi_ytube_chnlid'])){
+            
+            $option2['sfsi_ytube_chnlid']     = '';
+            
+            if(isset($option4['sfsi_ytube_chnlid']) && !empty($option4['sfsi_ytube_chnlid'])){
+                $option2['sfsi_ytube_chnlid'] = $option4['sfsi_ytube_chnlid'];
+            }            
+        }        
+    }
+
+    update_option('sfsi_section4_options', serialize($option4));
+    update_option('sfsi_section2_options', serialize($option2));
+
 }
 function sfsi_activate_plugin()
 {
@@ -190,39 +215,41 @@ function sfsi_activate_plugin()
     
     /* Links and icons  options */   
     $options2=array('sfsi_rss_url'=>sfsi_get_bloginfo('rss2_url'),
-        'sfsi_rss_icons'=>'email', 
-        'sfsi_email_url'=>$sffeeds->redirect_url,
-        'sfsi_facebookPage_option'=>'no',
-        'sfsi_facebookPage_url'=>'',
-        'sfsi_facebookLike_option'=>'yes',
-        'sfsi_facebookShare_option'=>'yes',
-        'sfsi_twitter_followme'=>'no',
+        'sfsi_rss_icons'             =>'email', 
+        'sfsi_email_url'             =>$sffeeds->redirect_url,
+        'sfsi_facebookPage_option'   =>'no',
+        'sfsi_facebookPage_url'      =>'',
+        'sfsi_facebookLike_option'   =>'yes',
+        'sfsi_facebookShare_option'  =>'yes',
+        'sfsi_twitter_followme'      =>'no',
         'sfsi_twitter_followUserName'=>'',
-        'sfsi_twitter_aboutPage'=>'yes',
-        'sfsi_twitter_page'=>'no',
-        'sfsi_twitter_pageURL'=>'',
-        'sfsi_twitter_aboutPageText'=>'Hey, check out this cool site I found: www.yourname.com #Topic via@my_twitter_name',
-        'sfsi_google_page'=>'no',
-        'sfsi_google_pageURL'=>'',
-        'sfsi_googleLike_option'=>'yes',
-        'sfsi_googleShare_option'=>'yes',
-        'sfsi_youtube_pageUrl'=>'',
-        'sfsi_youtube_page'=>'no',
-        'sfsi_youtube_follow'=>'no',
-        'sfsi_pinterest_page'=>'no',
-        'sfsi_pinterest_pageUrl'=>'',
-        'sfsi_pinterest_pingBlog'=>'',
-        'sfsi_instagram_page'=>'no',
-        'sfsi_instagram_pageUrl'=>'',
-        'sfsi_linkedin_page'=>'no',
-        'sfsi_linkedin_pageURL'=>'',
-        'sfsi_linkedin_follow'=>'no',
+        'sfsi_twitter_aboutPage'     =>'yes',
+        'sfsi_twitter_page'          =>'no',
+        'sfsi_twitter_pageURL'       =>'',
+        'sfsi_twitter_aboutPageText' =>'Hey, check out this cool site I found: www.yourname.com #Topic via@my_twitter_name',
+        'sfsi_google_page'           =>'no',
+        'sfsi_google_pageURL'        =>'',
+        'sfsi_googleLike_option'     =>'yes',
+        'sfsi_googleShare_option'    =>'yes',
+        'sfsi_youtube_pageUrl'       =>'',
+        'sfsi_youtube_page'          =>'no',
+        'sfsi_youtubeusernameorid'   => '',
+        'sfsi_ytube_chnlid'          => '',
+        'sfsi_youtube_follow'        =>'no',
+        'sfsi_pinterest_page'        =>'no',
+        'sfsi_pinterest_pageUrl'     =>'',
+        'sfsi_pinterest_pingBlog'    =>'',
+        'sfsi_instagram_page'        =>'no',
+        'sfsi_instagram_pageUrl'     =>'',
+        'sfsi_linkedin_page'         =>'no',
+        'sfsi_linkedin_pageURL'      =>'',
+        'sfsi_linkedin_follow'       =>'no',
         'sfsi_linkedin_followCompany'=>'',
-        'sfsi_linkedin_SharePage'=>'yes',
-        'sfsi_linkedin_recommendBusines'=>'no',
-        'sfsi_linkedin_recommendCompany'=>'',
+        'sfsi_linkedin_SharePage'         =>'yes',
+        'sfsi_linkedin_recommendBusines'  =>'no',
+        'sfsi_linkedin_recommendCompany'  =>'',
         'sfsi_linkedin_recommendProductId'=>'',
-        'sfsi_CustomIcon_links'=>''
+        'sfsi_CustomIcon_links'           =>''
         );
     add_option('sfsi_section2_options',  serialize($options2));
     
@@ -625,11 +652,10 @@ function sfsi_rating_msg()
     if($diff_inrval >= 30 && get_option('sfsi_RatingDiv')=="no")
     {
      echo '<div class="sfwp_fivestar notice notice-success is-dismissible">
-                <p>We noticed you\'ve been using the Ultimate Social Icons Plugin for more than 30 days. If you\'re happy with it, could you please do us a BIG favor and give it a 5-star rating on Wordpress?</p>
+                <p>We noticed you\'ve been using the Ultimate Social Media Plugin for more than 30 days. If you\'re happy with it, could you please do us a BIG favor and let us know what you think about it & what we can improve? It only takes a minute!?</p>
                 <ul>
-                    <li><a href="https://wordpress.org/support/plugin/ultimate-social-media-icons/reviews/" target="_new" title="Ok, you deserved it">Ok, you deserved it</a></li>
+                    <li><a href="https://wordpress.org/support/plugin/ultimate-social-media-icons#new-topic-0" target="_new" title="Yes, that\'s fair, let me give feedback!">Yes, that\'s fair, let me give feedback!</a></li>
                     <li><a href="javascript:void(0);" class="sfsiHideRating" title="I already did">I already did</a></li>
-                    <li><a href="javascript:void(0);" class="sfsiHideRating" title="No, not good enough">No, not good enough</a></li>
                 </ul>
             </div>
     <script>
