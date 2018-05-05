@@ -27,6 +27,9 @@ Images License: GNU General Public License v2 or later
 h1, h2, h3, h4, h5, h6, .site-footer *, .menu.nav-menu * {
     font-family: 'Pacifico', cursive;
 }
+.site-footer {
+    background-color: #F8E0F7;
+}
 .menu.nav-menu li {
     font-size: 20px;
 }
@@ -49,7 +52,16 @@ h1, h2, h3, h4, h5, h6, .site-footer *, .menu.nav-menu * {
 .page-template-template-homepage:not(.has-post-thumbnail) .site-main {
     padding-top: 0;
 }
-
+.page-template-template-homepage .type-page {
+    padding-top: 0;
+}
+.woocommerce-active .site-branding img {
+    min-width: 100%;
+    height: auto;
+}
+.home .site-content type-page a img:hover {
+    border: 2px solid pink;
+}
 @media only screen and (max-width: 500px) {
     .site-title > a {
         font-size: 0.9em;
@@ -58,13 +70,17 @@ h1, h2, h3, h4, h5, h6, .site-footer *, .menu.nav-menu * {
         margin-left: 1em;
         margin-right: 1em;
     }
-    .custom-logo {
-        max-width: 50px !important;
-    }
 }
 
 @media only screen and (max-width: 1067px) {
-    .custom-logo {
-        max-width: 75px !important;
+    .page-template-template-homepage .col-full {
+        margin-left: 6px;
+        margin-right: 6px;
+    }
+}
+
+@media (min-width: 768px) {
+    .site-header .site-branding {
+        width: 30.73913%;
     }
 }
