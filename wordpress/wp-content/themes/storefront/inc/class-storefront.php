@@ -73,8 +73,8 @@ if ( ! class_exists( 'Storefront' ) ) :
 			 * Enable support for site logo
 			 */
 			add_theme_support( 'custom-logo', apply_filters( 'storefront_custom_logo_args', array(
-				'height'      => 110,
-				'width'       => 470,
+				'height'      => 512,
+				'width'       => 512,
 				'flex-width'  => true,
 			) ) );
 
